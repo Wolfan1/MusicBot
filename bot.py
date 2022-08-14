@@ -85,7 +85,7 @@ class Voice(commands.Cog):
             audio_url, title, length, url = youtube_search(search_query)
 
             if not vc.is_playing():
-                vc.play(discord.FFmpegPCMAudio(executable="C:/FFmpeg/ffmpeg.exe", source=audio_url))
+                vc.play(discord.FFmpegPCMAudio(source=audio_url))
                 await ctx.send("Now playing \"" + title + "\"")
                 print(" -Bot began playing \"" + title + "\"\n")
                 while vc.is_playing():
@@ -105,7 +105,7 @@ class Voice(commands.Cog):
         if len(self.queue) == 0:
             return
         title, audio_url, time, url = self.queue.pop(0)
-        vc.play(discord.FFmpegPCMAudio(executable="C:/FFmpeg/ffmpeg.exe", source=audio_url))
+        vc.play(discord.FFmpegPCMAudio(source=audio_url))
         await ctx.send("Now playing \"" + title + "\" (" + url + ")")
         print(" -Bot began playing \"" + title + "\"\n")
         while vc.is_playing():
