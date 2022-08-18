@@ -103,7 +103,7 @@ class Music(commands.Cog):
         while len(self.queue) != 0:
             title, audio_url, time, url = self.queue.pop(0)
             self.playing = title
-            vc.play(discord.FFmpegPCMAudio(executable="C:/Users/colin/Documents/ffmpeg/bin/ffmpeg.exe", source=audio_url))
+            vc.play(discord.FFmpegPCMAudio(source=audio_url))
             await ctx.send("Now playing \"" + title + "\" (" + url + ")")
             print(" -Bot began playing \"" + title + "\"\n")
             while vc.is_playing():
