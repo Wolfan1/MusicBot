@@ -1,9 +1,14 @@
-import keys
 import asyncio
 import discord
+import os
+import platform
 from discord.ext import commands
 from datetime import datetime
 from searchyoutube import youtube_search
+
+operating_system = platform.system()
+
+DISCORD_TOKEN = os.environ.get('DISCORD_BOT_TOKEN')
 
 intents = discord.Intents.default()
 intents.members = True
@@ -13,6 +18,7 @@ bot = commands.Bot(command_prefix = '!', intents = intents)
 @bot.event
 async def on_ready():
     print("=====================================================")
+    print(f"\nRunning on {operating_system}")
     print(f"\nLogged in as {bot.user} (ID: {bot.user.id})")
     print("\n=====================================================")
 
@@ -87,7 +93,8 @@ class Music(commands.Cog):
             audio_url, title, length, url = youtube_search(choice)
 
             self.queue.append((title, audio_url, length, url))
-            await ctx.send("Added \"" + title + "\" to queue")
+            if not self.playing == None:    
+                await ctx.send("Added \"**" + title + "**\" to queue")
             print(" -Added \"" + title + "\" to queue\n")
 
             if self.playing == None:
@@ -103,8 +110,11 @@ class Music(commands.Cog):
         while len(self.queue) != 0:
             title, audio_url, time, url = self.queue.pop(0)
             self.playing = title
-            vc.play(discord.FFmpegPCMAudio(source=audio_url))
-            await ctx.send("Now playing \"" + title + "\" (" + url + ")")
+            if operating_system == "Windows":
+                vc.play(discord.FFmpegPCMAudio(source=audio_url, executable="C:/FFmpeg/ffmpeg.exe"))
+            elif operating_system == "Linux":
+                vc.play(discord.FFmpegPCMAudio(source=audio_url))
+            await ctx.send("Now playing \"**" + title + "**\" (" + url + ")")
             print(" -Bot began playing \"" + title + "\"\n")
             while vc.is_playing():
                 await asyncio.sleep(.5)
@@ -115,7 +125,8 @@ class Music(commands.Cog):
         message = ""
         i = 1
         for tup in self.queue:
-            message += f"{i}. {tup[3]}\n"
+            time_seconds = tup[2]
+            message += f"{i}: **{tup[0]}** *[{int(time_seconds/60)}:" + str(time_seconds%60).zfill(2) + "]*\n"
             i += 1
         await ctx.send(message)
 
@@ -136,7 +147,58 @@ class Music(commands.Cog):
             await ctx.send(f"Currently playing {self.playing}")
             print(f"Currently playing {self.playing}")
 
+    @commands.command(name='move', aliases=['Move'])
+    async def move(self, ctx):
+        def move_songs(frm:int, to:int):
+            moving_item = self.queue[frm]
+            self.queue.pop(frm)
+
+            temp_list = self.queue[to:]
+            #print(temp_list)
+
+            for i in range(to, len(self.queue)):
+                self.queue.pop(to)
+
+            self.queue.append(moving_item)
+
+            for i in temp_list:
+                self.queue.append(i)
+
+        words = []
+        word = ""
+        for char in ctx.message.content:
+            if char == " ":
+                words.append(word)
+                word = ""
+            else:
+                word += char
+        words.append(word)
+        words.pop(0)
+
+        if words[1].upper() == "TO":
+            move_songs((int(words[0])-1), (int(words[2])-1))
+            message = "New song order:\n"
+            i = 1
+            for tup in self.queue:
+                time_seconds = tup[2]
+                message += f"{i}: **{tup[0]}** *[{int(time_seconds/60)}:" + str(time_seconds%60).zfill(2) + "]*\n"
+                i += 1
+            await ctx.send(message)
+
+        else:
+            await ctx.send("Command must in the format \"!move [queue position] to [queue position]\"")
+
+    @commands.command(name="remove", aliases=["Remove", "r"])
+    async def remove(self, ctx):
+        print(ctx.message.content[1:7].upper())
+        if ctx.message.content[1:7].upper() == "REMOVE":
+            self.queue.pop(int(ctx.message.content[8])-1)
+        else:
+            self.queue.pop(int(ctx.message.content[3])-1)
+
+
+
 
 if __name__ == '__main__':
   bot.add_cog(Music(bot))
-  bot.run(keys.DISCORD_TOKEN)
+  bot.run(DISCORD_TOKEN)

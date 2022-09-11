@@ -1,0 +1,6 @@
+9/10/2022
+    > Can now detect operating system and use the appropriate ffmpeg command
+    > "!queue" command now sends "{position}: {title} [length]" for each song (previously sent youtube link)
+    > Can now move songs in the queue using "!move {position} to {position}"
+    > Can now remove songs from anywhere in the queue with "!remove {position}"
+    > Various changes to bot responses (formatting)
