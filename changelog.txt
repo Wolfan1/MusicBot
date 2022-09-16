@@ -4,3 +4,7 @@
     > Can now move songs in the queue using "!move {position} to {position}"
     > Can now remove songs from anywhere in the queue with "!remove {position}"
     > Various changes to bot responses (formatting)
+
+9/15/2022
+    > Can now use "!add {query}" to add a song to the queue (included 'add' as an alias for the command '!play')
+    > Bot now deletes the previous "Now playing: ..." message before it sends a new one and after the queue is finished playing
