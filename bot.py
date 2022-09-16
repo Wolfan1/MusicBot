@@ -1,3 +1,8 @@
+#############
+# Version: 9/15/2022
+# Uses searchyoutube version: 9/15/2022
+#############
+
 import asyncio
 import discord
 import os
@@ -28,6 +33,7 @@ class Music(commands.Cog):
         self.bot = bot
         self.queue = []
         self.playing = None
+        self.playing_msg = None
 
     # Join voice channel
     @commands.command(name='join', aliases=['j', 'J', 'Join'])
@@ -65,22 +71,26 @@ class Music(commands.Cog):
             print(" -Bot not in channel\n")
 
     # Play song
-    @commands.command(name='play', aliases=['p', 'P', 'Play'])
+    @commands.command(name='play', aliases=['p', 'P', 'Play', 'add'])
     async def play(self, ctx):
         now = datetime.now()
         current_time = now.strftime("%H:%M:%S")
         print("(" + current_time + ") " + str(ctx.author) + " used the command: " + str(ctx.message.content))
 
-        choice = ctx.message.content
-        if choice[1:5].upper() == 'PLAY':
-            choice = choice[6:len(choice)]
+        # Parse correct section of user message according to alias used
+        search_query = ctx.message.content
+        if search_query[1:5].upper() == 'PLAY':
+            search_query = search_query[6:len(search_query)]
+        elif search_query[1:4].upper() == 'ADD':
+            search_query = search_query[5:len(search_query)]
         else:
-            choice = choice[3:len(choice)]
+            search_query = search_query[3:len(search_query)]
 
         # Check if the user in a channel
         if (ctx.author.voice):
 
             vc = ctx.voice_client
+
             # Check if the bot is already in a channel
             if vc == None:
                 voice_channel = ctx.message.author.voice.channel
@@ -90,35 +100,55 @@ class Music(commands.Cog):
             else:
                 pass
 
-            audio_url, title, length, url = youtube_search(choice)
-
+            # Search youtube and append result to queue
+            audio_url, title, length, url = youtube_search(search_query)
             self.queue.append((title, audio_url, length, url))
             if not self.playing == None:    
                 await ctx.send("Added \"**" + title + "**\" to queue")
             print(" -Added \"" + title + "\" to queue\n")
 
+            # Begin playing songs, if not already
             if self.playing == None:
                 await self.play_queue(ctx, vc)
-
-            #print("Queue: " + str(self.queue))
 
         else:
             await ctx.send("You must be in a voice channel for me to join")
             print(" -User not in channel\n")
 
     async def play_queue(self, ctx, vc):
+
+        # Continue going through queue while there are still songs in the queue
         while len(self.queue) != 0:
+
+            # Retrieve and delete info about first song in queue
             title, audio_url, time, url = self.queue.pop(0)
             self.playing = title
+
+            # Check OS to use proper ffmpeg
+            # Begin playing audio from audio url
             if operating_system == "Windows":
                 vc.play(discord.FFmpegPCMAudio(source=audio_url, executable="C:/FFmpeg/ffmpeg.exe"))
             elif operating_system == "Linux":
                 vc.play(discord.FFmpegPCMAudio(source=audio_url))
-            await ctx.send("Now playing \"**" + title + "**\" (" + url + ")")
+
+            # Delete previous "Now playing" message
+            if self.playing_msg == None:
+                pass
+            else:
+                await self.playing_msg.delete()
+
+            # Send "Now playing" message
+            self.playing_msg = await ctx.send("Now playing \"**" + title + "**\" (" + url + ")")
             print(" -Bot began playing \"" + title + "\"\n")
+
+
             while vc.is_playing():
                 await asyncio.sleep(.5)
         self.playing = None
+        if self.playing_msg == None:
+                pass
+        else:
+            await self.playing_msg.delete()
 
     @commands.command(name='queue', aliases=['q', 'Q', 'Queue'])
     async def queue(self, ctx):
@@ -195,6 +225,7 @@ class Music(commands.Cog):
             self.queue.pop(int(ctx.message.content[8])-1)
         else:
             self.queue.pop(int(ctx.message.content[3])-1)
+
 
 
 
