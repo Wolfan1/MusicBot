@@ -1,3 +1,7 @@
+#############
+# Version: 9/15/2022
+#############
+
 import pafy
 import urllib.request
 import re
@@ -27,7 +31,6 @@ def GetBest(videoURLS: list[str]):
     videoTimes = [video.length for video in videoList]
     videoScores = [len([True for compare in videoTimes if abs(time - compare) <= time/10]) for time in videoTimes]
     maxScore = max(videoScores)
-
     # Finds best video by viewcount in largest cluster
     clusteredVideos = [videoList[i] for i in range(len(videoScores)) if videoScores[i] == maxScore]
     clusteredVideos.sort(key = lambda video: video.viewcount, reverse = True)
