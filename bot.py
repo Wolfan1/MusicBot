@@ -132,13 +132,14 @@ class Music(commands.Cog):
                 vc.play(discord.FFmpegPCMAudio(source=audio_url))
 
             # Delete previous "Now playing" message
-            if self.playing_msg == None:
-                pass
-            else:
+            """
+            if not self.playing_msg == None:
                 await self.playing_msg.delete()
-
+                self.playing_msg = None
+            """    
+            
             # Send "Now playing" message
-            self.playing_msg = await ctx.send("Now playing \"**" + title + "**\" (" + url + ")")
+            self.playing_msg = await ctx.send("Now playing \"**" + title + "**\" (" + url + ")", delete_after=time)
             print(" -Bot began playing \"" + title + "\"\n")
 
 
