@@ -1,3 +1,7 @@
+!
+!Must comment out lines 53 and 54 in pafy/backend_youtube_dl.py
+!
+
 9/10/2022
     > Can now detect operating system and use the appropriate ffmpeg command
     > "!queue" command now sends "{position}: {title} [length]" for each song (previously sent youtube link)
@@ -8,3 +12,7 @@
 9/15/2022
     > Can now use "!add {query}" to add a song to the queue (included 'add' as an alias for the command '!play')
     > Bot now deletes the previous "Now playing: ..." message before it sends a new one and after the queue is finished playing
+
+11/1/2022
+    > Fixed error in Colin's code
+    > Removed Colin's filtering system -> now just takes top result from youtube search
