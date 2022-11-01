@@ -1,6 +1,6 @@
 #############
 # Version: 9/15/2022
-# Uses searchyoutube version: 9/15/2022
+# Uses searchyoutube version: 11/1/2022
 #############
 
 import asyncio
