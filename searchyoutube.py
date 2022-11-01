@@ -1,5 +1,5 @@
 #############
-# Version: 9/15/2022
+# Version: 11/1/2022
 #############
 
 import pafy
@@ -11,9 +11,10 @@ def GetURLS(search: str) -> list[str]:
     html = urllib.request.urlopen('https://www.youtube.com/results?search_query=' + searchKeyword)
     videoIDS = re.findall(r"watch\?v=(\S{11})", html.read().decode())
     videoURLS = ['https://www.youtube.com/watch?v=' + id for id in videoIDS]
-    return videoURLS[0:min(10, len(videoURLS))] # returns at most 6 videos
+    return videoURLS
 
-def GetBest(videoURLS: list[str]):
+
+#def GetBest(videoURLS: list[str]):
     # Makes list of pafy objects
     videoList = []
     for url in videoURLS:
@@ -37,6 +38,7 @@ def GetBest(videoURLS: list[str]):
     return clusteredVideos[0]
     '''
     videoTimes = [video.length for video in videoList]
+    print(videoTimes)
     if abs(videoTimes[1] - videoTimes[2]) < 3 and abs(videoTimes[0] - videoTimes[1]) > 3 and abs(videoTimes[0] - videoTimes[2]) > 3:
         if videoList[1].viewcount > videoList[2].viewcount:
             return videoList[1]
@@ -46,13 +48,14 @@ def GetBest(videoURLS: list[str]):
 
 def youtube_search(argument:str) -> str:
     videoURLS = GetURLS(argument)
-    video = GetBest(videoURLS)
+#    video = GetBest(videoURLS)
+    video = pafy.new(videoURLS[1])
     return video.getbestaudio().url, video.title, video.length, "https://www.youtube.com/watch?v=" + video.videoid
 
 if __name__ == '__main__':
     # Makes list of pafy videos based on search
     search = 'i knew you were trouble'
     videoURLS = GetURLS(search)
-    bestVideo = GetBest(videoURLS)
+#    bestVideo = GetBest(videoURLS)
 
-    print(bestVideo.title, bestVideo.length, bestVideo.viewcount, bestVideo.watchv_url)
+#    print(bestVideo.title, bestVideo.length, bestVideo.viewcount, bestVideo.watchv_url)
