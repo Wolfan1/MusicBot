@@ -19,3 +19,8 @@
 
 1/5/2023
     > Added spotify playlist functionality
+
+1/6/2023
+    > New functionality to playlist function
+    > Added ability to restart and shutsown from discord
+    > Various bug fixes and addtions

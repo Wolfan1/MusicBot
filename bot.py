@@ -6,11 +6,13 @@
 import asyncio
 import discord
 import os
+import sys
 import platform
 from discord.ext import commands
 from datetime import datetime
 from searchyoutube import youtube_search
 from getsongs import getSongs
+from random import shuffle
 
 operating_system = platform.system()
 
@@ -18,8 +20,51 @@ DISCORD_TOKEN = os.environ.get('DISCORD_BOT_TOKEN')
 
 intents = discord.Intents.default()
 intents.members = True
-
 bot = commands.Bot(command_prefix = '!', intents = intents)
+
+# parses the input from the playlist function assumes it starts with "Playlist" or "playlist"
+# after that you can optionally add -s to shuffle or -{num} to limit the playlist to some amount of
+# songs, these can be in any order: ex (!playlist -s -100 thisUrl or !playlist -10 -s thisUrl
+# or !playlist thisUrl or !playlist -s thisURL etc)
+def parsePlaylist(command: str):
+    url = ""
+    max = 50 # base max
+    shuffle = False
+
+    if command[0:8] != "Playlist" and command[0:8] != "playlist":
+        raise Exception("Error: Bad Call of Parse Playlist")
+
+    intlen = 0
+    nextloc = 9
+    if command[nextloc] == "-":
+        if command[nextloc + 1] == "s" or command[nextloc + 1] == "S":
+            shuffle = True
+            intlen = 1
+        elif command[nextloc + 1].isdecimal():
+            while command[nextloc + 1 + intlen].isdecimal():
+                intlen += 1
+            max = int(command[nextloc + 1: nextloc + 1 + intlen])
+        else:
+            raise Exception("Error: Bad Call of Parse Playlist")
+        nextloc += intlen + 2
+        intlen = 0
+
+    if command[nextloc] == "-":
+        if command[nextloc + 1] == "s" or command[nextloc + 1] == "S":
+            shuffle = True
+            intlen = 1
+        elif command[nextloc + 1].isdecimal():
+            while command[nextloc + 1 + intlen].isdecimal():
+                intlen += 1
+            max = int(command[nextloc + 1: nextloc + 1 + intlen])
+        else:
+            raise Exception("Error: Bad Call of Parse Playlist")
+    else:
+        intlen = -2
+    
+    url = command[nextloc + intlen + 2: len(command)]
+    return url, max, shuffle
+        
 
 @bot.event
 async def on_ready():
@@ -154,13 +199,13 @@ class Music(commands.Cog):
 
     @commands.command(name='queue', aliases=['q', 'Q', 'Queue'])
     async def queue(self, ctx):
-        message = ""
         i = 1
         for tup in self.queue:
             time_seconds = tup[2]
-            message += f"{i}: **{tup[0]}** *[{int(time_seconds/60)}:" + str(time_seconds%60).zfill(2) + "]*\n"
+            await ctx.send(f"{i}: **{tup[0]}** *[{int(time_seconds/60)}:" + str(time_seconds%60).zfill(2) + "]*")
             i += 1
-        await ctx.send(message)
+        await ctx.send(f"This queue has {i-1} song(s)")
+        
 
     @commands.command(name='skip', aliases=['Skip'])
     async def skip(self, ctx):
@@ -234,10 +279,16 @@ class Music(commands.Cog):
         current_time = now.strftime("%H:%M:%S")
         print("(" + current_time + ") " + str(ctx.author) + " used the command: " + str(ctx.message.content))
 
-        # Parse correct section of user message according to alias used
+        # Parse correct section of user message according to arguments
         search_query = ctx.message.content
-        url = search_query[8:len(search_query)]
+        url, max, do_shuffle = parsePlaylist(search_query[1:len(search_query)])
+
+        # Find correct songs and order to play
         songs = getSongs(url)
+        if do_shuffle:
+            shuffle(songs)
+        if max < len(songs):
+            songs = songs[0:max]
 
         # Check if the user in a channel
         if (ctx.author.voice):
@@ -255,23 +306,49 @@ class Music(commands.Cog):
 
             for song in songs:
                 # Search youtube and append result to queue
-                audio_url, title, length, url = youtube_search(song)
+                try:
+                    audio_url, title, length, url = youtube_search(song)
+                except Exception as exc:
+                    print(f"Error finding song: {exc}")
+                    continue
                 self.queue.append((title, audio_url, length, url))
                 if not self.playing == None:    
                     await ctx.send("Added \"**" + title + "**\" to queue")
                 print(" -Added \"" + title + "\" to queue\n")
 
-                # Begin playing songs, if not already
-                if self.playing == None:
-                    await self.play_queue(ctx, vc)
+            # Begin playing songs, if not already
+            if self.playing == None:
+                await self.play_queue(ctx, vc)
 
         else:
             await ctx.send("You must be in a voice channel for me to join")
             print(" -User not in channel\n")
+    
+    @commands.command(name='restart', aliases=['Restart'])
+    async def restart(self, ctx):
+        ctx.bot.command_prefix = "TRUE"
+        await self.shutdown(ctx)
+
+
+    @commands.command(name='shutdown', aliases=['Shutdown'])
+    async def shutdown(self, ctx):
+        if (ctx.voice_client):
+            await ctx.guild.voice_client.disconnect()
+            print(" -Bot disconnected\n")
+
+        now = datetime.now()
+        current_time = now.strftime("%H:%M:%S")
+        print("(" + current_time + ") " + str(ctx.author) + " used the command: " + str(ctx.message.content))
+        await ctx.bot.close()
 
 
 
 
 if __name__ == '__main__':
-  bot.add_cog(Music(bot))
-  bot.run(DISCORD_TOKEN)
+    bot.add_cog(Music(bot))
+    bot.run(DISCORD_TOKEN)
+
+    if bot.command_prefix == "TRUE":
+        sys.exit(1)
+    else:
+        sys.exit(0)

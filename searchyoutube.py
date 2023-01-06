@@ -49,13 +49,14 @@ def GetURLS(search: str) -> list[str]:
 def youtube_search(argument:str) -> str:
     videoURLS = GetURLS(argument)
 #    video = GetBest(videoURLS)
-    video = pafy.new(videoURLS[1])
+    video = pafy.new(videoURLS[max(1, 1-len(videoURLS))])
     return video.getbestaudio().url, video.title, video.length, "https://www.youtube.com/watch?v=" + video.videoid
 
 if __name__ == '__main__':
     # Makes list of pafy videos based on search
     search = 'i knew you were trouble'
     videoURLS = GetURLS(search)
+    print(videoURLS)
 #    bestVideo = GetBest(videoURLS)
 
 #    print(bestVideo.title, bestVideo.length, bestVideo.viewcount, bestVideo.watchv_url)

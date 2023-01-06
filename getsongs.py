@@ -2,11 +2,17 @@ import os
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 
-creds = SpotifyClientCredentials(client_id=os.environ.get('SPOTIFY_CLIENT_ID'), client_secret="SPOTIFY_CLIENT_SECRET")
+creds = SpotifyClientCredentials()
 creds.redirect_uri = os.environ.get("SPOTIFY_REDIRECT_URI")
-
-birdy_uri = 'spotify:artist:2WX2uTcsvV5OnS0inACecP'
 spotify = spotipy.Spotify(client_credentials_manager=creds)
+
+# removes non ascii chars from string to prevent problems
+def strfix(s: str) -> str:
+  ret = ""
+  for c in s:
+    if c.isascii():
+      ret += c
+  return ret
 
 def getSongs(url: str) -> list:
   songs = []
@@ -20,7 +26,7 @@ def getSongs(url: str) -> list:
 
     for result in results["items"]:
       try:
-        songs.append(result["track"]["name"] + ", " + result["track"]["artists"][0]["name"])
+        songs.append(strfix(result["track"]["name"]) + ", " + strfix(result["track"]["artists"][0]["name"]))
       except:
         pass
   return songs
