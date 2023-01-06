@@ -229,7 +229,7 @@ class Music(commands.Cog):
             self.queue.pop(int(ctx.message.content[3])-1)
 
     @commands.command(name='playlist', aliases=['Playlist'])
-    async def play(self, ctx):
+    async def playlist(self, ctx):
         now = datetime.now()
         current_time = now.strftime("%H:%M:%S")
         print("(" + current_time + ") " + str(ctx.author) + " used the command: " + str(ctx.message.content))

@@ -16,3 +16,6 @@
 11/1/2022
     > Fixed error in Colin's code
     > Removed Colin's filtering system -> now just takes top result from youtube search
+
+1/5/2023
+    > Added spotify playlist functionality

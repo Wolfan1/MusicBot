@@ -1,8 +1,9 @@
+import os
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 
-creds = SpotifyClientCredentials(client_id="", client_secret="")
-creds.redirect_uri = ""
+creds = SpotifyClientCredentials(client_id=os.environ.get('SPOTIFY_CLIENT_ID'), client_secret="SPOTIFY_CLIENT_SECRET")
+creds.redirect_uri = os.environ.get("SPOTIFY_REDIRECT_URI")
 
 birdy_uri = 'spotify:artist:2WX2uTcsvV5OnS0inACecP'
 spotify = spotipy.Spotify(client_credentials_manager=creds)
