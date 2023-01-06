@@ -10,6 +10,7 @@ import platform
 from discord.ext import commands
 from datetime import datetime
 from searchyoutube import youtube_search
+from getsongs import getSongs
 
 operating_system = platform.system()
 
@@ -227,6 +228,46 @@ class Music(commands.Cog):
         else:
             self.queue.pop(int(ctx.message.content[3])-1)
 
+    @commands.command(name='playlist', aliases=['Playlist'])
+    async def play(self, ctx):
+        now = datetime.now()
+        current_time = now.strftime("%H:%M:%S")
+        print("(" + current_time + ") " + str(ctx.author) + " used the command: " + str(ctx.message.content))
+
+        # Parse correct section of user message according to alias used
+        search_query = ctx.message.content
+        url = search_query[8:len(search_query)]
+        songs = getSongs(url)
+
+        # Check if the user in a channel
+        if (ctx.author.voice):
+
+            vc = ctx.voice_client
+
+            # Check if the bot is already in a channel
+            if vc == None:
+                voice_channel = ctx.message.author.voice.channel
+                vc = await voice_channel.connect()
+                await ctx.send("Joined " + str(voice_channel))
+                print(" -Bot joined " + str(voice_channel))
+            else:
+                pass
+
+            for song in songs:
+                # Search youtube and append result to queue
+                audio_url, title, length, url = youtube_search(song)
+                self.queue.append((title, audio_url, length, url))
+                if not self.playing == None:    
+                    await ctx.send("Added \"**" + title + "**\" to queue")
+                print(" -Added \"" + title + "\" to queue\n")
+
+                # Begin playing songs, if not already
+                if self.playing == None:
+                    await self.play_queue(ctx, vc)
+
+        else:
+            await ctx.send("You must be in a voice channel for me to join")
+            print(" -User not in channel\n")
 
 
 
