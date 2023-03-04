@@ -1,5 +1,5 @@
 !
-!Must comment out lines 53 and 54 in pafy/backend_youtube_dl.py
+!Must comment out lines 53 - 55 in pafy/backend_youtube_dl.py
 !
 
 9/10/2022
