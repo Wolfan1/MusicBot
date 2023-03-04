@@ -1,5 +1,6 @@
 !
 !Must comment out lines 53 - 55 in pafy/backend_youtube_dl.py
+!Must comment out line 1794 of youtube_dl/extractor/youtube.py
 !
 
 9/10/2022
